@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scratch 星光票選站</title>
+    <style>
+      .version-banner {
+        margin-bottom: 18px;
+        padding: 14px 18px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, rgba(15, 36, 68, 0.92), rgba(21, 53, 98, 0.9));
+        border: 1px solid rgba(225, 189, 108, 0.24);
+        color: #eef4ff;
+        font: 800 0.98rem/1.4 "Trebuchet MS", "Noto Sans TC", sans-serif;
+        letter-spacing: 0.04em;
+        box-shadow: 0 18px 30px rgba(11, 27, 49, 0.22);
+      }
+    </style>
+    <link rel="stylesheet" href="/styles.css?v=20260417c" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <div class="version-banner">2026 全新版面已啟用：深藍榮耀風格、成果展示主視覺、典雅票選介面</div>
+      <div class="topbar">
+        <div class="brand">
+          <span class="brand-mark">S</span>
+          <div>
+            <p class="brand-name">Scratch 星光票選站</p>
+            <p class="brand-subtitle">Creative Showcase for Schools & Clubs</p>
+          </div>
+        </div>
+        <div class="topbar-badges">
+          <a href="#upload-section" class="mini-badge">線上投稿</a>
+          <button type="button" class="mini-badge mini-badge-button" id="topbar-ranking">即時排行</button>
+          <a href="#page-top" class="mini-badge">活動展示</a>
+        </div>
+      </div>
+
+      <header class="hero" id="page-top">
+        <div class="hero-copy">
+          <p class="eyebrow">Scratch Showcase & Voting</p>
+          <h1>Scratch 星光票選站</h1>
+          <p class="hero-text">把孩子們的創意作品，變成一場真正有現場感的線上票選。</p>
+          <div class="hero-actions">
+            <a href="#upload-section" class="button button-primary">立即上傳作品</a>
+            <a href="#gallery-section" class="button button-secondary">查看目前票選</a>
+          </div>
+        </div>
+        <div class="hero-panel">
+          <div class="hero-spotlight">
+            <p class="spotlight-label">活動視覺焦點</p>
+            <strong>讓作品像展覽一樣被看見</strong>
+            <p>以校園成果展與榮譽表揚為靈感，讓學生作品在沉穩且有份量的版面中被看見與喝采。</p>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">活動亮點</span>
+            <strong>作品上傳</strong>
+            <p>支援 Scratch 專案檔與封面縮圖</p>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">即時榜單</span>
+            <strong>票數排行</strong>
+            <p>依票數高低快速查看人氣作品</p>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">公平投票</span>
+            <strong>單作品限投一次</strong>
+            <p>同一瀏覽器不可重複投同一個作品</p>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section class="panel" id="upload-section">
+          <div class="section-heading">
+            <p class="eyebrow">Upload</p>
+            <h2>上傳你的 Scratch 作品</h2>
+            <p class="section-text">填寫作品資訊後，作品會立即加入展示牆，觀眾可直接下載專案或前往 Scratch 頁面查看。</p>
+          </div>
+
+          <form id="upload-form" class="upload-form">
+            <label>
+              作品名稱
+              <input type="text" name="title" placeholder="例如：森林保衛戰" required />
+            </label>
+            <label>
+              作者名稱
+              <input type="text" name="author" placeholder="例如：五年二班 王小明" required />
+            </label>
+            <label class="full-width">
+              作品介紹
+              <textarea
+                name="description"
+                rows="4"
+                placeholder="簡單介紹作品玩法、故事或設計亮點"
+                required
+              ></textarea>
+            </label>
+            <label>
+              Scratch 專案檔
+              <input type="file" name="project_file" accept=".sb3,.sb2" required />
+            </label>
+            <label>
+              作品縮圖
+              <input type="file" name="thumbnail" accept="image/png,image/jpeg,image/gif,image/webp" />
+            </label>
+            <label class="full-width">
+              Scratch 線上連結（選填）
+              <input type="url" name="scratch_link" placeholder="https://scratch.mit.edu/projects/..." />
+            </label>
+            <div class="form-footer full-width">
+              <button type="submit" class="button button-primary">送出作品</button>
+              <p id="form-status" class="status-text" role="status"></p>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel" id="gallery-section">
+          <div class="section-heading section-heading-row">
+            <div>
+              <p class="eyebrow">Gallery</p>
+              <h2>作品票選牆</h2>
+              <p class="section-text">每件作品都會顯示作者、簡介與票數，方便活動現場快速找到熱門作品。</p>
+            </div>
+            <label class="sorter">
+              排序方式
+              <select id="sort-select">
+                <option value="popular">依票數</option>
+                <option value="newest">最新上傳</option>
+              </select>
+            </label>
+          </div>
+
+          <div id="gallery-empty" class="empty-state" hidden>
+            目前還沒有作品，成為第一位上傳者吧。
+          </div>
+          <div id="gallery" class="gallery"></div>
+        </section>
+      </main>
+    </div>
+
+    <template id="project-template">
+      <article class="project-card">
+        <div class="project-cover-wrap">
+          <img class="project-cover" alt="" />
+        </div>
+        <div class="project-body">
+          <div class="project-meta">
+            <p class="project-author"></p>
+            <span class="project-date"></span>
+          </div>
+          <h3 class="project-title"></h3>
+          <p class="project-description"></p>
+          <div class="project-links">
+            <a class="button button-secondary download-link" target="_blank" rel="noreferrer">下載作品</a>
+            <a class="button button-ghost scratch-link" target="_blank" rel="noreferrer" hidden>Scratch 頁面</a>
+          </div>
+          <div class="project-footer">
+            <div class="vote-pill">
+              <span>票數</span>
+              <strong class="vote-count">0</strong>
+            </div>
+            <button class="button button-primary vote-button">投這個作品</button>
+          </div>
+          <p class="card-status" role="status"></p>
+        </div>
+      </article>
+    </template>
+
+    <script src="/app.js?v=20260417c" defer></script>
+  </body>
+</html>

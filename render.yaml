@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: scratch-voting-site
+    runtime: docker
+    plan: free
+    autoDeploy: true
