@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY . .
 
+RUN gem install webrick
 RUN mkdir -p /app/data/uploads
 
 ENV PORT=4567
