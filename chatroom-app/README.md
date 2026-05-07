@@ -19,6 +19,7 @@
 請在此資料夾執行：
 
 ```bash
+bundle install
 ruby server.rb
 ```
 
@@ -48,6 +49,7 @@ STORAGE_ROOT=/your/persistent/path ruby server.rb
 這份設定會：
 
 - 使用 `chatroom-app` 當根目錄
+- 安裝 Gem 依賴（`bundle install`）
 - 啟動 `ruby server.rb`
 - 使用 Render `free` Web Service 方案
 - 保留 `STORAGE_ROOT` 路徑設定，方便之後升級

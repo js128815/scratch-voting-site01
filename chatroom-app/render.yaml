@@ -4,8 +4,8 @@ services:
     runtime: ruby
     rootDir: chatroom-app
     plan: free
-    buildCommand: echo "No build step"
-    startCommand: ruby server.rb
+    buildCommand: bundle install
+    startCommand: bundle exec ruby server.rb
     envVars:
       - key: STORAGE_ROOT
         value: /opt/render/project/src/chatroom-app/storage
