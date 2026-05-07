@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WaveRoom 即時聊天室</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-a"></div>
+    <div class="ambient ambient-b"></div>
+
+    <div class="name-modal" id="name-modal" hidden>
+      <div class="name-modal-card panel">
+        <p class="eyebrow">Welcome</p>
+        <h2>請先輸入您的姓名</h2>
+        <p class="muted">輸入後即可進入聊天室，其他成員會看到您設定的名稱。</p>
+        <form id="name-form" class="name-form">
+          <label class="field">
+            <span>姓名或暱稱</span>
+            <input id="name-input" type="text" maxlength="24" placeholder="例如：王小明" required />
+          </label>
+          <p id="name-error" class="name-error" hidden>請輸入姓名後再進入聊天室。</p>
+          <button class="primary-button" type="submit">進入聊天室</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="app-shell">
+      <aside class="sidebar panel">
+        <div class="brand">
+          <p class="eyebrow">Chat Space</p>
+          <h2>WaveRoom</h2>
+          <p class="muted">開連結就能加入的互動聊天室，適合社群交流、課程互助與活動即時討論。</p>
+        </div>
+
+        <section class="sidebar-section">
+          <div class="section-title">
+            <h3>聊天室</h3>
+            <span id="room-count">0</span>
+          </div>
+          <div class="room-list" id="room-list"></div>
+        </section>
+
+        <section class="sidebar-section tips-card">
+          <h3>這一版支援</h3>
+          <ul>
+            <li>直接透過連結進入</li>
+            <li>文字訊息</li>
+            <li>圖片 / 影片 / 文字檔附件</li>
+            <li>分頁即時同步與在線成員</li>
+          </ul>
+        </section>
+      </aside>
+
+      <main class="chat-layout">
+        <header class="topbar panel">
+          <div>
+            <p class="eyebrow">Live Room</p>
+            <h1 id="active-room-name">載入中...</h1>
+            <p id="active-room-description" class="room-description">聊天室資訊載入中...</p>
+          </div>
+
+          <div class="topbar-meta">
+            <div class="share-box">
+              <span id="room-link-label" class="share-link">連結準備中...</span>
+              <button type="button" class="ghost-button" id="copy-room-link-button">複製連結</button>
+            </div>
+
+            <div class="status-pill">
+              <span class="status-dot"></span>
+              <strong id="presence-count">0 人在線</strong>
+            </div>
+
+            <button type="button" class="ghost-button" id="change-nickname-button">更換名稱</button>
+          </div>
+        </header>
+
+        <section class="chat-main">
+          <div class="conversation panel">
+            <div class="conversation-toolbar">
+              <div>
+                <p class="eyebrow">Quick Actions</p>
+                <h3 id="quick-action-title">快速操作</h3>
+              </div>
+              <div id="quick-action-list" class="quick-action-list"></div>
+            </div>
+            <div id="message-list" class="message-list" aria-live="polite"></div>
+            <div id="typing-indicator" class="typing-indicator">目前沒有人正在輸入</div>
+          </div>
+
+          <aside class="members panel">
+            <div class="room-brief">
+              <p class="eyebrow">Room Mode</p>
+              <h3 id="room-mode-title">載入中...</h3>
+              <p id="room-mode-copy" class="muted">聊天室說明載入中...</p>
+              <div id="room-rule-list" class="room-rule-list"></div>
+            </div>
+
+            <div class="section-title">
+              <h3>在線成員</h3>
+              <span id="member-count">0</span>
+            </div>
+            <div id="member-list" class="member-list"></div>
+
+            <div class="reaction-panel">
+              <h3 id="reaction-title">快速表情</h3>
+              <div class="emoji-row" id="emoji-row">
+              </div>
+            </div>
+          </aside>
+        </section>
+
+        <footer class="composer panel">
+          <form id="message-form" class="composer-form">
+            <div class="composer-stack">
+              <label class="field composer-field">
+                <span id="composer-label">輸入訊息</span>
+                <textarea
+                  id="message-input"
+                  rows="1"
+                  maxlength="400"
+                  placeholder="輸入你想聊的內容，按 Enter 送出，Shift + Enter 換行"
+                ></textarea>
+              </label>
+
+              <div class="composer-tools">
+                <label id="upload-button-label" class="upload-button" for="attachment-input">上傳文字 / 圖片 / 影片</label>
+                <input
+                  id="attachment-input"
+                  type="file"
+                  accept="image/*,video/*,.txt,.md,.json,.csv"
+                  multiple
+                  hidden
+                />
+                <p id="upload-hint" class="upload-hint">可附加圖片、影片與文字檔，建議單檔 3 MB 內。</p>
+              </div>
+
+              <div id="attachment-preview" class="attachment-preview" hidden></div>
+            </div>
+
+            <button class="primary-button send-button" type="submit">送出</button>
+          </form>
+        </footer>
+      </main>
+    </div>
+
+    <template id="room-template">
+      <button type="button" class="room-card">
+        <span class="room-badge"></span>
+        <span class="room-copy">
+          <strong class="room-name"></strong>
+          <small class="room-topic"></small>
+        </span>
+      </button>
+    </template>
+
+    <template id="message-template">
+      <article class="message-card">
+        <div class="message-meta">
+          <strong class="message-author"></strong>
+          <span class="message-time"></span>
+        </div>
+        <p class="message-body"></p>
+        <div class="message-attachments"></div>
+      </article>
+    </template>
+
+    <template id="member-template">
+      <div class="member-chip">
+        <span class="member-avatar"></span>
+        <div>
+          <strong class="member-name"></strong>
+          <p class="member-status">在線中</p>
+        </div>
+      </div>
+    </template>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

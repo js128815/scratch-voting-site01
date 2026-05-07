@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: wave-room-chat
+    runtime: ruby
+    rootDir: chatroom-app
+    plan: free
+    buildCommand: echo "No build step"
+    startCommand: ruby server.rb
+    envVars:
+      - key: STORAGE_ROOT
+        value: /opt/render/project/src/chatroom-app/storage
