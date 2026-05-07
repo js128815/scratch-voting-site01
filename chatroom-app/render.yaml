@@ -4,8 +4,8 @@ services:
     runtime: ruby
     rootDir: chatroom-app
     plan: free
-    buildCommand: bundle install
-    startCommand: bundle exec ruby server.rb
+    buildCommand: gem install bundler -v 2.5.23 && bundle _2.5.23_ install
+    startCommand: bundle _2.5.23_ exec ruby server.rb
     envVars:
       - key: STORAGE_ROOT
         value: /opt/render/project/src/chatroom-app/storage

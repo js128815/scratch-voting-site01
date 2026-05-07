@@ -19,8 +19,9 @@
 請在此資料夾執行：
 
 ```bash
-bundle install
-ruby server.rb
+gem install bundler -v 2.5.23
+bundle _2.5.23_ install
+bundle _2.5.23_ exec ruby server.rb
 ```
 
 然後開啟：
@@ -49,8 +50,8 @@ STORAGE_ROOT=/your/persistent/path ruby server.rb
 這份設定會：
 
 - 使用 `chatroom-app` 當根目錄
-- 安裝 Gem 依賴（`bundle install`）
-- 啟動 `ruby server.rb`
+- 安裝 Bundler 2.5.23 與 Gem 依賴
+- 啟動 `bundle _2.5.23_ exec ruby server.rb`
 - 使用 Render `free` Web Service 方案
 - 保留 `STORAGE_ROOT` 路徑設定，方便之後升級
 
