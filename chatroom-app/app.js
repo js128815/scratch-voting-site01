@@ -3,14 +3,14 @@ const ROOMS = [
     id: "lobby",
     name: "大廳交流",
     topic: "自由聊天與新朋友報到",
-    description: "適合輕鬆聊天、公告集合與快速互動，文字、圖片、影片都可以直接分享。",
+    description: "適合輕鬆聊天、公告集合與快速互動，文字與圖片都可以直接分享。",
     modeTitle: "自由交流模式",
-    modeCopy: "這裡是最開放的房間，適合打招呼、貼近況、分享活動片段。",
-    placeholder: "和大家打聲招呼、分享近況或貼上活動影片連結感想",
-    uploadLabel: "上傳文字 / 圖片 / 影片",
-    uploadHint: "可附加圖片、影片與文字檔，適合自由分享，建議單檔 15 MB 內。",
-    accept: "image/*,video/*,.txt,.md,.json,.csv",
-    rules: ["不限聊天主題", "可上傳圖片與影片", "適合公告與快速互動"],
+    modeCopy: "這裡是最開放的房間，適合打招呼、貼近況與分享生活照片。",
+    placeholder: "和大家打聲招呼、分享近況或貼上今天的照片心得",
+    uploadLabel: "上傳文字 / 圖片",
+    uploadHint: "可附加圖片與文字檔，適合自由分享，建議單檔 15 MB 內。",
+    accept: "image/*,.txt,.md,.json,.csv",
+    rules: ["不限聊天主題", "可上傳圖片", "適合公告與快速互動"],
     reactionTitle: "大廳互動",
     reactions: ["👏", "🔥", "🎉", "❤️", "😂", "👋"],
     theme: "lobby",
@@ -21,7 +21,7 @@ const ROOMS = [
       { label: "近況分享", template: "今天想和大家分享一件小事：" }
     ],
     requireText: false,
-    allowedKinds: ["image", "video", "text"]
+    allowedKinds: ["image", "text"]
   },
   {
     id: "ideas",
@@ -29,12 +29,12 @@ const ROOMS = [
     topic: "產品、企劃與靈感交流",
     description: "用來收斂提案與視覺靈感，偏向有內容的討論，重點是文字提案與圖片輔助。",
     modeTitle: "提案討論模式",
-    modeCopy: "建議用文字描述問題、解法與價值，也可以附圖片草圖，但不開放影片洗版。",
+    modeCopy: "建議用文字描述問題、解法與價值，也可以附圖片草圖。",
     placeholder: "建議格式：問題 / 想法 / 預期效果，例如：想新增簽到功能，讓活動報到更快",
     uploadLabel: "上傳提案圖片 / 文字",
-    uploadHint: "此房間主打提案討論，允許圖片與文字檔，不提供影片上傳。",
+    uploadHint: "此房間主打提案討論，允許圖片與文字檔。",
     accept: "image/*,.txt,.md,.json,.csv",
-    rules: ["需有文字內容", "允許圖片草圖", "不開放影片上傳"],
+    rules: ["需有文字內容", "允許圖片草圖", "可附提案文字檔"],
     reactionTitle: "提案回饋",
     reactions: ["💡", "🚀", "📌", "✅", "🤔", "👏"],
     theme: "ideas",
@@ -58,7 +58,7 @@ const ROOMS = [
     uploadLabel: "上傳筆記 / 教材圖片",
     uploadHint: "此房間適合上傳文字檔與圖片教材，建議整理重點後再發送。",
     accept: "image/*,.txt,.md,.json,.csv",
-    rules: ["適合提問與整理筆記", "允許教材圖片與文字檔", "建議避免閒聊與影片"],
+    rules: ["適合提問與整理筆記", "允許教材圖片與文字檔", "建議避免閒聊"],
     reactionTitle: "學習回應",
     reactions: ["📚", "✍️", "💯", "🧠", "🙋", "✅"],
     theme: "study",
@@ -76,18 +76,22 @@ const ROOMS = [
 const POLL_INTERVAL = 3000;
 const PRESENCE_INTERVAL = 12000;
 const TYPING_IDLE_MS = 2200;
+const LAST_READ_KEY = "wave-room-last-read";
 
 const state = {
   clientId: sessionStorage.getItem("wave-room-client-id") || crypto.randomUUID(),
   nickname: localStorage.getItem("wave-room-nickname") || "",
   activeRoomId: getRoomIdFromUrl(),
   messages: [],
+  roomMessages: {},
   members: [],
   typers: [],
   pendingAttachments: [],
   isTyping: false,
   isSending: false,
-  hasStarted: false
+  hasStarted: false,
+  unreadCounts: {},
+  lastReadAtByRoom: loadLastReadMap()
 };
 
 sessionStorage.setItem("wave-room-client-id", state.clientId);
@@ -351,20 +355,34 @@ function startBackgroundSync() {
 }
 
 async function refreshState() {
-  const url = new URL("/api/state", window.location.origin);
-  url.searchParams.set("roomId", state.activeRoomId);
-  url.searchParams.set("clientId", state.clientId);
+  const roomPayloads = await Promise.all(
+    ROOMS.map(async (room) => {
+      const url = new URL("/api/state", window.location.origin);
+      url.searchParams.set("roomId", room.id);
+      url.searchParams.set("clientId", state.clientId);
 
-  const response = await fetch(url, { cache: "no-store" });
-  const payload = await response.json();
+      const response = await fetch(url, { cache: "no-store" });
+      const payload = await response.json();
 
-  if (!response.ok) {
-    throw new Error(payload.error || "讀取聊天室資料失敗");
+      if (!response.ok) {
+        throw new Error(payload.error || "讀取聊天室資料失敗");
+      }
+
+      return { roomId: room.id, payload };
+    })
+  );
+
+  for (const { roomId, payload } of roomPayloads) {
+    state.roomMessages[roomId] = payload.messages || [];
+    if (roomId === state.activeRoomId) {
+      state.messages = payload.messages || [];
+      state.members = payload.members || [];
+      state.typers = payload.typers || [];
+    }
   }
 
-  state.messages = payload.messages || [];
-  state.members = payload.members || [];
-  state.typers = payload.typers || [];
+  markActiveRoomAsRead();
+  updateUnreadCounts();
   renderAll();
 }
 
@@ -437,13 +455,20 @@ function renderRooms() {
   for (const room of ROOMS) {
     const fragment = roomTemplate.content.cloneNode(true);
     const button = fragment.querySelector(".room-card");
+    const unreadBadge = fragment.querySelector(".room-unread");
     button.dataset.roomId = room.id;
     button.dataset.roomTheme = room.theme;
     button.querySelector(".room-name").textContent = room.name;
     button.querySelector(".room-topic").textContent = room.topic;
 
+    const unreadCount = state.unreadCounts[room.id] || 0;
+    unreadBadge.hidden = unreadCount === 0;
+    unreadBadge.textContent = unreadCount > 99 ? "99+" : String(unreadCount);
+
     if (room.id === state.activeRoomId) {
       button.classList.add("is-active");
+    } else if (unreadCount > 0) {
+      button.classList.add("has-unread");
     }
 
     roomList.append(fragment);
@@ -591,15 +616,6 @@ function appendLocalPreview(container, file) {
     return;
   }
 
-  if (kind === "video") {
-    const video = document.createElement("video");
-    video.className = "attachment-video";
-    video.controls = true;
-    video.src = URL.createObjectURL(file);
-    container.append(video);
-    return;
-  }
-
   const text = document.createElement("p");
   text.className = "attachment-text";
   text.textContent = "文字檔將以附件形式送出。";
@@ -613,15 +629,6 @@ function appendRemoteAttachment(container, attachment) {
     img.alt = attachment.name;
     img.src = attachment.url;
     container.append(img);
-    return;
-  }
-
-  if (attachment.kind === "video") {
-    const video = document.createElement("video");
-    video.className = "attachment-video";
-    video.controls = true;
-    video.src = attachment.url;
-    container.append(video);
     return;
   }
 
@@ -655,6 +662,58 @@ function autosizeComposer() {
 function updateSendButton() {
   sendButton.disabled = state.isSending;
   sendButton.textContent = state.isSending ? "送出中..." : "送出";
+}
+
+function loadLastReadMap() {
+  try {
+    const raw = localStorage.getItem(LAST_READ_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveLastReadMap() {
+  localStorage.setItem(LAST_READ_KEY, JSON.stringify(state.lastReadAtByRoom));
+}
+
+function markActiveRoomAsRead() {
+  const activeMessages = state.roomMessages[state.activeRoomId] || [];
+  const lastIncoming = [...activeMessages]
+    .reverse()
+    .find((message) => message.authorId !== state.clientId && message.type !== "system");
+
+  if (!lastIncoming) {
+    state.unreadCounts[state.activeRoomId] = 0;
+    return;
+  }
+
+  state.lastReadAtByRoom[state.activeRoomId] = lastIncoming.createdAt;
+  state.unreadCounts[state.activeRoomId] = 0;
+  saveLastReadMap();
+}
+
+function updateUnreadCounts() {
+  const nextCounts = {};
+
+  for (const room of ROOMS) {
+    if (room.id === state.activeRoomId) {
+      nextCounts[room.id] = 0;
+      continue;
+    }
+
+    const lastReadAt = state.lastReadAtByRoom[room.id] ? new Date(state.lastReadAtByRoom[room.id]).getTime() : 0;
+    const messages = state.roomMessages[room.id] || [];
+    nextCounts[room.id] = messages.filter((message) => {
+      if (message.authorId === state.clientId || message.type === "system") {
+        return false;
+      }
+
+      return new Date(message.createdAt).getTime() > lastReadAt;
+    }).length;
+  }
+
+  state.unreadCounts = nextCounts;
 }
 
 function openNameModal(defaultValue = "") {
@@ -699,20 +758,12 @@ function getAttachmentKind(file) {
     return "IMAGE";
   }
 
-  if (file.type.startsWith("video/")) {
-    return "VIDEO";
-  }
-
   return "TEXT";
 }
 
 function mapFileKind(file) {
   if (file.type.startsWith("image/")) {
     return "image";
-  }
-
-  if (file.type.startsWith("video/")) {
-    return "video";
   }
 
   return "text";

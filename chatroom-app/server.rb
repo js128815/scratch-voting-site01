@@ -24,7 +24,6 @@ ROOMS = [
   { "id" => "study", "name" => "學習共創", "topic" => "課程、筆記與提問互助" }
 ].freeze
 ALLOWED_IMAGE_TYPES = %w[image/png image/jpeg image/webp image/gif].freeze
-ALLOWED_VIDEO_TYPES = %w[video/mp4 video/webm video/quicktime].freeze
 ALLOWED_TEXT_TYPES = %w[text/plain text/markdown application/json text/csv].freeze
 MAX_FILE_SIZE = 15 * 1024 * 1024
 MAX_MESSAGES = 300
@@ -74,7 +73,7 @@ def ensure_messages_file
       "authorId" => "host",
       "authorName" => "產品小編",
       "type" => "message",
-      "body" => "這裡可以分享點子，也可以直接上傳圖片或短影片。",
+      "body" => "這裡可以分享點子，也可以直接上傳圖片或文字檔。",
       "attachments" => [],
       "createdAt" => Time.now.iso8601
     },
@@ -123,9 +122,6 @@ def content_type_for(path)
   when ".jpg", ".jpeg" then "image/jpeg"
   when ".webp" then "image/webp"
   when ".gif" then "image/gif"
-  when ".mp4" then "video/mp4"
-  when ".webm" then "video/webm"
-  when ".mov" then "video/quicktime"
   when ".txt" then "text/plain; charset=utf-8"
   when ".md" then "text/markdown; charset=utf-8"
   when ".json" then "application/json; charset=utf-8"
@@ -188,8 +184,6 @@ def build_attachment(upload)
   kind =
     if ALLOWED_IMAGE_TYPES.include?(content_type)
       "image"
-    elsif ALLOWED_VIDEO_TYPES.include?(content_type)
-      "video"
     elsif ALLOWED_TEXT_TYPES.include?(content_type) || File.extname(filename).match?(/\A\.(txt|md|json|csv)\z/i)
       "text"
     end

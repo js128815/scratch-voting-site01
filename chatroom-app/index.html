@@ -53,7 +53,7 @@
           <ul>
             <li>直接透過連結進入</li>
             <li>文字訊息</li>
-            <li>圖片 / 影片 / 文字檔附件</li>
+            <li>圖片 / 文字檔附件</li>
             <li>分頁即時同步與在線成員</li>
           </ul>
         </section>
@@ -131,15 +131,15 @@
               </label>
 
               <div class="composer-tools">
-                <label id="upload-button-label" class="upload-button" for="attachment-input">上傳文字 / 圖片 / 影片</label>
+                <label id="upload-button-label" class="upload-button" for="attachment-input">上傳文字 / 圖片</label>
                 <input
                   id="attachment-input"
                   type="file"
-                  accept="image/*,video/*,.txt,.md,.json,.csv"
+                  accept="image/*,.txt,.md,.json,.csv"
                   multiple
                   hidden
                 />
-                <p id="upload-hint" class="upload-hint">可附加圖片、影片與文字檔，建議單檔 3 MB 內。</p>
+                <p id="upload-hint" class="upload-hint">可附加圖片與文字檔，建議單檔 3 MB 內。</p>
               </div>
 
               <div id="attachment-preview" class="attachment-preview" hidden></div>
@@ -158,6 +158,7 @@
           <strong class="room-name"></strong>
           <small class="room-topic"></small>
         </span>
+        <span class="room-unread" hidden>0</span>
       </button>
     </template>
 
